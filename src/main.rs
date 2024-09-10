@@ -72,9 +72,9 @@ fn watch<P: AsRef<Path>>(path: P) -> Result<(), ProjectError> {
     let mut events = HashMap::new();
 
     let mut contents = vec![];
-    let mut file = File::open(path.as_ref()).unwrap();
-    let mut position = file.read_to_end(&mut contents).unwrap();
-    let mut string = String::from_utf8(contents).unwrap();
+    let mut file = File::open(path.as_ref()).map_err(|err| ProjectError::IoError(format!("Failed to open file with error {}", err)))?;
+    let mut position = file.read_to_end(&mut contents).map_err(|err| ProjectError::IoError(format!("Failed to read file with error {}", err)))?;
+    let mut string = String::from_utf8(contents).map_err(|err| ProjectError::IoError(format!("Failed to convert string from utf8 with error {}", err)))?;
 
     loop {
         let nl_pos = string.find('\n');
@@ -100,10 +100,10 @@ fn watch<P: AsRef<Path>>(path: P) -> Result<(), ProjectError> {
             Ok(event) => {
                 if event.kind.is_modify() {
                     contents.truncate(0);
-                    let mut file = File::open(path.as_ref()).unwrap();
+                    let mut file = File::open(path.as_ref()).map_err(|err| ProjectError::IoError(format!("Failed to open file with error {}", err)))?;
                     file.seek(SeekFrom::Start(position as u64)).map_err(|_| ProjectError::IoError("Failed to seek file".to_owned()))?;
                     position += file.read_to_end(&mut contents).map_err(|err| ProjectError::IoError(format!("Failed to read file with error {}", err)))?;
-                    string += String::from_utf8(contents).unwrap().as_str();
+                    string += String::from_utf8(contents).map_err(|err| ProjectError::IoError(format!("Failed to convert string from utf8 with error {}", err)))?.as_str();
                     loop {
                         let nl_pos = string.find('\n');
                         if let Some(nl_pos) = nl_pos {
