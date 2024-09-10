@@ -74,7 +74,6 @@ fn watch<P: AsRef<Path>>(path: P) -> Result<(), ProjectError> {
     let mut contents = vec![];
     let mut file = File::open(path.as_ref()).unwrap();
     let mut position = file.read_to_end(&mut contents).unwrap();
-    println!("Position is {}", position);
     let mut string = String::from_utf8(contents).unwrap();
 
     loop {
@@ -121,7 +120,7 @@ fn watch<P: AsRef<Path>>(path: P) -> Result<(), ProjectError> {
                     dbg!(&events);
                 }
             },
-            Err(error) => println!("inotify error: {error:?}"),
+            Err(error) => eprintln!("inotify error: {error:?}"),
         }
     }
 
